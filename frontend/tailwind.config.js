@@ -1,22 +1,25 @@
 /** @type {import('tailwindcss').Config} */
-export default {
-  content: ['./index.html', './src/**/*.{js,jsx}'],
+module.exports = {
+  content: [
+    "./app/**/*.{js,jsx}",
+    "./components/**/*.{js,jsx}",
+  ],
   theme: {
     extend: {
       colors: {
-        surface: {
-          950: '#ffffff',
-          900: '#f8fafc',
-          800: '#f1f5f9',
-          700: '#e2e8f0',
-          600: '#cbd5e1',
-          500: '#94a3b8',
-        },
+        ink: "#0b1220",
+        panel: "#111a2e",
+        edge: "#1e2a44",
+        muted: "#8597b5",
+        accent: "#5b9dff",
+        good: "#3fb27f",
+        warn: "#e0b341",
+        bad: "#e5616a",
       },
       fontFamily: {
-        mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
     },
   },
   plugins: [],
-}
+};

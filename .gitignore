@@ -16,6 +16,8 @@ data/processed/
 *.joblib
 node_modules/
 frontend/dist/
+frontend/.next/
+frontend/out/
 .venv/
 venv/
 env/
