@@ -67,7 +67,9 @@ ${context}`;
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 400,
-      system: SYSTEM,
+      // Prompt-cache the (static) system prompt — the rules are identical on every
+      // request, so caching them cuts input tokens and latency (spec §7).
+      system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: user }],
     }),
   });

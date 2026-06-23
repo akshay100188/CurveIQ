@@ -110,6 +110,42 @@ export default async function IndiaPage() {
           why="There is no Indian equivalent of the NBER's official recession dates. The crisis windows shown (Taper Tantrum 2013, COVID 2020) are hard-coded constants, not an official series."
         />
       </div>
+
+      <section className="space-y-2 pt-2">
+        <h2 className="font-medium">Crisis behaviour</h2>
+        <p className="max-w-3xl text-sm text-muted">
+          With no free curve, India can&apos;t show a curve reshape like the US.
+          Instead these zoom into each crisis window to show the 10Y level
+          trajectory — the honest degraded view.
+        </p>
+        <div className="grid gap-6 lg:grid-cols-2">
+          {reg.map((w) => {
+            const slice = tenY
+              .filter((r) => r.obs_date >= w.start_date && (!w.end_date || r.obs_date <= w.end_date))
+              .map((r) => ({ x: r.obs_date, y: +r.value }));
+            return (
+              <Panel
+                key={w.regime_name}
+                title={w.regime_name === "taper_tantrum" ? "Taper Tantrum (2013)" : "COVID shock (2020)"}
+                subtitle={`10Y G-Sec, ${w.start_date} → ${w.end_date || "ongoing"}`}
+                explain={{
+                  country: "IN",
+                  topic: `India's 10Y trajectory through the ${w.regime_name} window and why only a level view is possible`,
+                  facts: {
+                    window: { start: w.start_date, end: w.end_date },
+                    points: slice.map((p) => ({ date: p.x, y_10y: p.y })),
+                  },
+                }}
+              >
+                <TimeSeries data={slice} yLabel="%" color="#3fb27f" />
+                <p className="mt-2 text-xs text-muted">
+                  No curve-shift view is possible — India has no free full curve.
+                </p>
+              </Panel>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

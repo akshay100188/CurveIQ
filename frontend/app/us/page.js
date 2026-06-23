@@ -1,6 +1,8 @@
 import Panel from "@/components/Panel";
-import { CurveSnapshot, TimeSeries, TimeSeries2 } from "@/components/charts";
+import { CrisisCurves, CurveScrubber, TimeSeries, TimeSeries2 } from "@/components/charts";
 import {
+  crisisCurvesUS,
+  curveHistoryUS,
   latestCurve,
   metricLatest,
   metricMonthly,
@@ -13,7 +15,7 @@ export const revalidate = 3600;
 const xy = (rows) => rows.map((r) => ({ x: r.obs_date, y: +r.value }));
 
 export default async function USPage() {
-  const [curve, shape, spread2y, spread3m, reg, nominal, real, corr24, pcaL, pcaS, pcaC, corrIn, corrOut] =
+  const [curve, shape, spread2y, spread3m, reg, nominal, real, corr24, pcaL, pcaS, pcaC, corrIn, corrOut, crises] =
     await Promise.all([
       latestCurve("US"),
       metricLatest("US", "curve_shape"),
@@ -28,7 +30,9 @@ export default async function USPage() {
       metricLatest("US", "pca_var_curvature"),
       metricLatest("US", "eq_yield_corr_in_recession"),
       metricLatest("US", "eq_yield_corr_out_recession"),
+      crisisCurvesUS(),
     ]);
+  const history = await curveHistoryUS();
 
   // overlay nominal 10Y vs 10Y real yield on a common monthly date set
   const realMap = new Map(real.map((r) => [r.obs_date, +r.value]));
@@ -50,8 +54,8 @@ export default async function USPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel
-          title="Yield curve (latest)"
-          subtitle={curve.date ? `Constant-maturity yields, ${curve.date}` : ""}
+          title="Yield curve"
+          subtitle="Constant-maturity yields — drag the scrubber across history"
           explain={{
             country: "US",
             topic: "the shape of the latest US Treasury yield curve",
@@ -64,9 +68,9 @@ export default async function USPage() {
           }}
         >
           <div className="mb-3">
-            <span className={`badge ${shapeColor}`}>{shape?.label ?? "—"}</span>
+            <span className={`badge ${shapeColor}`}>{shape?.label ?? "—"} (latest)</span>
           </div>
-          <CurveSnapshot points={curve.points} />
+          <CurveScrubber history={history} />
         </Panel>
 
         <Panel
@@ -158,6 +162,43 @@ export default async function USPage() {
           </p>
         </Panel>
       </div>
+
+      <section className="space-y-2 pt-2">
+        <h2 className="font-medium">Crisis curve behaviour</h2>
+        <p className="max-w-3xl text-sm text-muted">
+          How the whole curve reshaped through each stress episode — overlaid
+          snapshots at pre-stress, peak, and recovery key dates. Watch the slope
+          and level shift (bull-steepening as the Fed cut in 2008 and 2020; the
+          2013 bear sell-off).
+        </p>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {crises.map((c) => (
+            <Panel
+              key={c.name}
+              title={c.label}
+              explain={{
+                country: "US",
+                topic: `how the US curve reshaped during ${c.label}`,
+                facts: {
+                  episode: c.label,
+                  key_dates: Object.fromEntries(
+                    Object.entries(c.dates).map(([k, v]) => [
+                      k,
+                      {
+                        date: v.snapshot_date,
+                        y_2y: v.points.find((p) => p.tenor_months === 24)?.yield,
+                        y_10y: v.points.find((p) => p.tenor_months === 120)?.yield,
+                      },
+                    ])
+                  ),
+                },
+              }}
+            >
+              <CrisisCurves dates={c.dates} />
+            </Panel>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

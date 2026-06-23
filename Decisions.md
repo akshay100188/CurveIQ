@@ -53,6 +53,33 @@ narrative (US = full toolkit, India = constrained companion).
 the authenticity of any row is auditable. Driven by the "this is a data-heavy app,
 we cannot be wrong on data" requirement.
 
+## ADR-8: Bond calculator — client-side TS, parity-checked against a Python twin
+The single-bond engine runs **client-side in TypeScript** (`frontend/lib/bond.ts`)
+for instant feedback with no infra. To keep rigor, an independent **Python reference
+twin** (`pipeline/bond_reference.py`) computes the same quantities, emits **golden
+vectors** (`frontend/lib/bond.golden.json`), and both test suites assert against
+them — so TS == Python to 8 decimals. Textbook checks: a par bond's yield equals its
+coupon; price↔yield round-trips to <1e-6; analytic duration/convexity match a
+numerical derivative. YTM-from-price uses **Newton–Raphson** (seeded at the coupon,
+analytic derivative = −modified-duration × dirty price) with a **bisection fallback**
+over [1e-6, 2.0] when NR steps out of range.
+
+## ADR-9: Crisis curve behaviour via key-date snapshots
+Rather than animate, the US crisis view **overlays three discrete curve snapshots**
+(pre-stress / peak / recovery) per episode (2008, 2013, 2020). Key dates live in
+`curveiq.crisis_keydates`, each snapped to the nearest trading day with a complete
+11-tenor curve. India has no free curve, so it **degrades by necessity** to a windowed
+10Y-level trajectory (with an inline note on why a curve-shift view isn't possible).
+
+## ADR-10: Day-count conventions
+**US Treasuries: ACT/ACT (ICMA)**, semi-annual. **India G-Secs: 30/360**, semi-annual
+— confirmed via the RBI *Government Securities Market: A Primer* and FIMMDA. The 30/360
+implementation uses the US (NASD) bond-basis edge handling (`D1=31 → 30`; `D2=31 & D1∈
+{30,31} → 30`), validated against worked half-period accruals. Indian **T-Bills** use
+Actual/365 and are **out of scope** for v1 (they would need their own day-count branch);
+the ~3-working-day shut period before coupon is a known accrued-interest edge case, noted
+but not modelled.
+
 ## ADR-7: curveiq schema for writes; bond + core for reads
 CurveIQ reads authentic inputs from `bond` (RBI repo) and `core` (equity), and
 writes its cleaned canonical store + computed metrics to its own `curveiq` schema

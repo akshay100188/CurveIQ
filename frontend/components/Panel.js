@@ -1,7 +1,20 @@
-import Explain from "./Explain";
+"use client";
 
-// Server-rendered panel shell with an optional Explain button.
+import { useState } from "react";
+import ExplainOutput from "./Explain";
+
+// Panel shell. The Explain button lives top-right in the header; its narrative
+// renders as a FULL-WIDTH block below the header so the text wraps vertically
+// inside the card instead of overflowing horizontally.
 export default function Panel({ title, subtitle, children, explain }) {
+  const [open, setOpen] = useState(false);
+  const [everOpened, setEverOpened] = useState(false);
+
+  function toggle() {
+    setOpen((o) => !o);
+    setEverOpened(true);
+  }
+
   return (
     <section className="card">
       <div className="mb-3 flex items-start justify-between gap-4">
@@ -9,8 +22,23 @@ export default function Panel({ title, subtitle, children, explain }) {
           <h3 className="font-medium">{title}</h3>
           {subtitle && <p className="mt-0.5 text-sm text-muted">{subtitle}</p>}
         </div>
-        {explain && <Explain {...explain} />}
+        {explain && (
+          <button
+            onClick={toggle}
+            aria-expanded={open}
+            className="badge shrink-0 border border-edge bg-ink/60 text-accent hover:border-accent"
+          >
+            Explain
+          </button>
+        )}
       </div>
+
+      {explain && everOpened && (
+        <div className={open ? "mb-4" : "hidden"}>
+          <ExplainOutput {...explain} />
+        </div>
+      )}
+
       {children}
     </section>
   );

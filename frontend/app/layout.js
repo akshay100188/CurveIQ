@@ -17,6 +17,7 @@ function Nav() {
         <nav className="flex gap-6 text-sm text-muted">
           <Link href="/us" className="hover:text-white">US</Link>
           <Link href="/in" className="hover:text-white">India</Link>
+          <Link href="/calculator" className="hover:text-white">Calculator</Link>
           <a
             href="https://github.com/akshay100188/CurveIQ"
             className="hover:text-white"

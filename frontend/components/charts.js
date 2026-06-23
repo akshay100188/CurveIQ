@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Area,
   AreaChart,
@@ -85,6 +86,46 @@ export function TimeSeries2({ data, aLabel, bLabel, aColor = "#5b9dff", bColor =
   );
 }
 
+// Overlay several curves (yield vs tenor) for crisis reshape — one line per key date.
+const CRISIS_COLORS = { pre_stress: "#8597b5", peak: "#e5616a", recovery: "#3fb27f" };
+const CRISIS_LABELS = { pre_stress: "pre-stress", peak: "peak", recovery: "recovery" };
+
+export function CrisisCurves({ dates }) {
+  const order = ["pre_stress", "peak", "recovery"].filter((k) => dates[k]);
+  if (!order.length) return <div className="text-sm text-muted">No data.</div>;
+  // merge by tenor into one row set: { x: tenorLabel, pre_stress, peak, recovery }
+  const tenors = dates[order[0]].points.map((p) => p.tenor);
+  const data = tenors.map((t, i) => {
+    const row = { x: t };
+    for (const k of order) row[k] = dates[k].points[i]?.yield;
+    return row;
+  });
+  return (
+    <>
+      <ResponsiveContainer width="100%" height={240}>
+        <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: -8 }}>
+          <CartesianGrid stroke={GRID} strokeDasharray="3 3" />
+          <XAxis dataKey="x" tick={AXIS} />
+          <YAxis tick={AXIS} width={48} unit="%" />
+          <Tooltip contentStyle={ttStyle()} labelStyle={{ color: "#8597b5" }} />
+          {order.map((k) => (
+            <Line key={k} type="monotone" dataKey={k} name={CRISIS_LABELS[k]}
+              stroke={CRISIS_COLORS[k]} dot={false} strokeWidth={1.8} />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+      <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted">
+        {order.map((k) => (
+          <span key={k} className="inline-flex items-center gap-1.5">
+            <span className="inline-block h-2 w-2 rounded-full" style={{ background: CRISIS_COLORS[k] }} />
+            {CRISIS_LABELS[k]} · {dates[k].snapshot_date}
+          </span>
+        ))}
+      </div>
+    </>
+  );
+}
+
 // Curve snapshot: yield vs tenor.
 export function CurveSnapshot({ points }) {
   if (!points?.length) return <div className="text-sm text-muted">No data.</div>;
@@ -105,5 +146,31 @@ export function CurveSnapshot({ points }) {
         <Area type="monotone" dataKey="y" stroke="#5b9dff" fill="url(#cv)" strokeWidth={1.8} />
       </AreaChart>
     </ResponsiveContainer>
+  );
+}
+
+// Curve snapshot + a time scrubber across quarterly history.
+export function CurveScrubber({ history }) {
+  const [idx, setIdx] = useState(history.length - 1);
+  if (!history?.length) return <div className="text-sm text-muted">No data.</div>;
+  const snap = history[Math.min(idx, history.length - 1)];
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between text-sm">
+        <span className="text-muted">Curve as of</span>
+        <span className="metric text-accent">{snap.date}</span>
+      </div>
+      <CurveSnapshot points={snap.points} />
+      <input
+        type="range" min={0} max={history.length - 1} value={idx}
+        onChange={(e) => setIdx(+e.target.value)}
+        className="mt-3 w-full accent-accent"
+        aria-label="Curve date scrubber"
+      />
+      <div className="mt-1 flex justify-between text-xs text-muted">
+        <span>{history[0].date}</span>
+        <span>{history[history.length - 1].date}</span>
+      </div>
+    </div>
   );
 }

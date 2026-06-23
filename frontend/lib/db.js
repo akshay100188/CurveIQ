@@ -69,6 +69,40 @@ export async function latestCurve(country) {
   return { date: d, points };
 }
 
+export async function crisisCurvesUS() {
+  // each US episode's key-date curves, grouped for overlay charts
+  const rows = await rest(
+    `v_crisis_curves?select=crisis_name,crisis_label,label,snapshot_date,tenor_months,tenor_label,yield` +
+      `&order=crisis_name.asc,tenor_months.asc`
+  );
+  const byCrisis = new Map();
+  for (const r of rows) {
+    if (!byCrisis.has(r.crisis_name)) {
+      byCrisis.set(r.crisis_name, { name: r.crisis_name, label: r.crisis_label, dates: {} });
+    }
+    const c = byCrisis.get(r.crisis_name);
+    if (!c.dates[r.label]) c.dates[r.label] = { snapshot_date: r.snapshot_date, points: [] };
+    c.dates[r.label].points.push({ tenor: r.tenor_label, tenor_months: r.tenor_months, yield: r.yield });
+  }
+  return [...byCrisis.values()];
+}
+
+export async function curveHistoryUS() {
+  // quarterly full US curves for the time scrubber
+  const rows = await rest(
+    `v_curve_quarterly?select=obs_date,tenor_months,tenor_label,yield` +
+      `&order=obs_date.asc,tenor_months.asc`
+  );
+  const byDate = new Map();
+  for (const r of rows) {
+    if (!byDate.has(r.obs_date)) byDate.set(r.obs_date, []);
+    byDate.get(r.obs_date).push({
+      tenor_months: r.tenor_months, tenor_label: r.tenor_label, yield: r.yield,
+    });
+  }
+  return [...byDate.entries()].map(([date, points]) => ({ date, points }));
+}
+
 export async function regimes(country) {
   return rest(
     `regimes?country=eq.${country}&select=regime_name,start_date,end_date&order=start_date.asc`

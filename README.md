@@ -48,11 +48,14 @@ its canonical store + metrics to its own `curveiq` schema. Every fact row carrie
 ### Python pipeline (`requirements.txt`)
 ```bash
 pip install -r requirements.txt
-python -m pipeline.run_phase0       # schema + ingest + Phase 0 validation gates
-python -m pipeline.phase1_compute   # L1 metrics
-python -m pipeline.phase1_validate  # Phase 1 validation gates
-python -m pipeline.phase3_rag       # build + embed the RAG corpus
-python -m tests.test_compute        # unit tests
+python -m pipeline.run_phase0           # schema + ingest + Phase 0 validation gates
+python -m pipeline.phase1_compute       # L1 metrics
+python -m pipeline.phase1_validate      # Phase 1 validation gates
+python -m pipeline.phase2_crisis        # seed crisis key dates + validation gates
+python -m pipeline.phase3_rag           # build + embed the RAG corpus
+python -m pipeline.bond_reference       # regenerate bond golden vectors
+python -m tests.test_compute            # L1 unit tests
+python -m tests.test_bond_reference     # bond engine unit tests (Python twin)
 ```
 `.env` (gitignored) needs: `DATABASE_URL`, `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`,
 `FRED_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`.
@@ -63,16 +66,30 @@ cd frontend
 cp .env.example .env.local   # fill server-side keys
 npm install
 npm run dev                  # or: npm run build && npm start
+npm test                     # vitest — bond engine + Python parity (golden vectors)
 ```
 Deploy target: Vercel. Set the four server-side env vars in the Vercel project.
 
 ## Phases
 - **Phase 0** — data foundation: ingest + 40+ validation gates. ✅
 - **Phase 1** — L1 compute: spreads, curve-shape classification, real yields,
-  equity–yield regime-split correlation, PCA (level ≈ 87%). ✅
-- **Phase 2** — Next.js frontend: `/us` (full toolkit) + `/in` (companion) + Explain. ✅
-- **Phase 3** — L2 RAG: corpus → pgvector → `/api/explain` + forbidden-language lint. ✅
-- **Phase 4** — US stretch: PCA + real/breakeven panels (done in Phase 1/2). ACM
-  term premium is an optional future ingest.
+  equity–yield regime-split correlation, PCA (level ≈ 87%); **bond calculator**
+  engine (TS, parity-checked vs Python twin). ✅
+- **Phase 2** — Next.js frontend: `/us` (full toolkit, **curve time-scrubber**),
+  `/in` (companion), `/calculator` (bond math), **crisis curve-behaviour** panels,
+  Explain on every panel. ✅
+- **Phase 3** — L2 RAG: corpus → pgvector → `/api/explain` + forbidden-language lint
+  + prompt-cached system prompt. ✅
+- **Phase 4** — US stretch: PCA + real/breakeven panels. ACM term premium is an
+  optional future ingest.
+
+### Surfaces
+- `/calculator` — single-bond price↔yield, accrued, clean/dirty, current yield,
+  Macaulay/modified duration, convexity, DV01; US Treasury (ACT/ACT) + India G-Sec
+  (30/360) presets.
+- `/us` — curve scrubber, slope/spreads, real-vs-nominal, PCA factors, equity–yield
+  regime split, crisis curve overlays (2008/2013/2020).
+- `/in` — 10Y, slope, administered repo, Nifty correlation, crisis trajectories, and
+  three annotated "missing" panels.
 
 See [`Decisions.md`](Decisions.md) for the architecture decision records.

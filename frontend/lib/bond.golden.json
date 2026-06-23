@@ -1,0 +1,86 @@
+[
+  {
+    "case": {
+      "name": "us_par_6pct_10y",
+      "face": 100,
+      "coupon_rate": 0.06,
+      "settlement": "2020-01-15",
+      "maturity": "2030-01-15",
+      "preset": "US_TREASURY",
+      "ytm": 0.06
+    },
+    "expected": {
+      "dirty_price": 99.99999999999997,
+      "clean_price": 99.99999999999997,
+      "accrued_interest": 0.0,
+      "current_yield": 0.06000000000000002,
+      "macaulay_duration": 7.661899553134585,
+      "modified_duration": 7.438737430227753,
+      "convexity": 68.77482237123748,
+      "dv01": 0.07438737430227751
+    }
+  },
+  {
+    "case": {
+      "name": "us_5pct_2y_at_6",
+      "face": 100,
+      "coupon_rate": 0.05,
+      "settlement": "2020-01-15",
+      "maturity": "2022-01-15",
+      "preset": "US_TREASURY",
+      "ytm": 0.06
+    },
+    "expected": {
+      "dirty_price": 98.1414507985948,
+      "clean_price": 98.1414507985948,
+      "accrued_interest": 0.0,
+      "current_yield": 0.05094687269562547,
+      "macaulay_duration": 1.9272357043028632,
+      "modified_duration": 1.8711026255367602,
+      "convexity": 4.484914349191906,
+      "dv01": 0.018363272626323753
+    }
+  },
+  {
+    "case": {
+      "name": "us_3pct_30y_at_4_midperiod",
+      "face": 100,
+      "coupon_rate": 0.03,
+      "settlement": "2021-04-15",
+      "maturity": "2051-01-15",
+      "preset": "US_TREASURY",
+      "ytm": 0.04
+    },
+    "expected": {
+      "dirty_price": 83.43709763382444,
+      "clean_price": 82.69124128023327,
+      "accrued_interest": 0.7458563535911602,
+      "current_yield": 0.036279537633656586,
+      "macaulay_duration": 18.611209060174968,
+      "modified_duration": 18.2462833923284,
+      "convexity": 454.0386341575171,
+      "dv01": 0.1522416928860134
+    }
+  },
+  {
+    "case": {
+      "name": "india_gsec_7pct_10y_30360",
+      "face": 100,
+      "coupon_rate": 0.07,
+      "settlement": "2021-04-15",
+      "maturity": "2031-01-02",
+      "preset": "INDIA_GSEC",
+      "ytm": 0.0725
+    },
+    "expected": {
+      "dirty_price": 100.26571055436014,
+      "clean_price": 98.26293277658236,
+      "accrued_interest": 2.0027777777777778,
+      "current_yield": 0.07123744226030483,
+      "macaulay_duration": 7.04190804797507,
+      "modified_duration": 6.795568683208754,
+      "convexity": 59.869145109797415,
+      "dv01": 0.06813625226428832
+    }
+  }
+]
