@@ -66,10 +66,15 @@ over [1e-6, 2.0] when NR steps out of range.
 
 ## ADR-9: Crisis curve behaviour via key-date snapshots
 Rather than animate, the US crisis view **overlays three discrete curve snapshots**
-(pre-stress / peak / recovery) per episode (2008, 2013, 2020). Key dates live in
+(pre-stress / peak / recovery) per episode. Key dates live in
 `curveiq.crisis_keydates`, each snapped to the nearest trading day with a complete
-11-tenor curve. India has no free curve, so it **degrades by necessity** to a windowed
-10Y-level trajectory (with an inline note on why a curve-shift view isn't possible).
+11-tenor curve. The US crisis set is **{GFC 2008, Taper Tantrum 2013, COVID 2020}**.
+**GFC 2008 is US-only** — Indian G-Sec data in this app starts ~2011-12 — and is the
+cleanest **bull-steepening** example in the set (front end collapses to zero as the Fed
+cuts, curve steepens). A dedicated validation gate explicitly asserts 2008 is present so
+it can't silently fall through behind the India-capable pair. India has no free curve,
+so it **degrades by necessity** to a windowed 10Y-level trajectory, with inline notes on
+why a curve-shift view isn't possible *and* why 2008 is absent there.
 
 ## ADR-10: Day-count conventions
 **US Treasuries: ACT/ACT (ICMA)**, semi-annual. **India G-Secs: 30/360**, semi-annual

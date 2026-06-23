@@ -47,8 +47,10 @@ grant select on curveiq.v_crisis_curves to anon, authenticated, service_role;
 
 # (crisis_name, display label, [(label, target_date), ...])
 US_EPISODES = [
+    # GFC is the cleanest bull-steepening case and is US-only (Indian G-Sec data
+    # starts ~2011-12). Anchors per spec §6: flat/inverted -> post-Lehman -> steep.
     ("gfc_2008", "Global Financial Crisis (2008)", [
-        ("pre_stress", "2007-06-15"), ("peak", "2008-11-20"), ("recovery", "2009-12-31")]),
+        ("pre_stress", "2007-06-15"), ("peak", "2008-10-15"), ("recovery", "2009-06-15")]),
     ("taper_2013", "Taper Tantrum (2013)", [
         ("pre_stress", "2013-04-30"), ("peak", "2013-09-05"), ("recovery", "2013-12-31")]),
     ("covid_2020", "COVID shock (2020)", [
@@ -95,6 +97,17 @@ def validate() -> int:
     each India crisis window returns non-empty 10Y + spread slices."""
     fails = []
     with db.cursor() as cur:
+        # Explicit guard: the US-only GFC 2008 episode must be present and complete
+        # — it must never silently fall through behind the India-capable pair (spec §6).
+        cur.execute("""select count(distinct k.label)
+                       from curveiq.crisis_keydates k
+                       join curveiq.curve_points c
+                         on c.country='US' and c.obs_date=k.snapshot_date
+                       where k.crisis_name='gfc_2008'""")
+        gfc_ok = cur.fetchone()[0] >= 3
+        print(f"  [{'PASS' if gfc_ok else 'FAIL'}] US GFC 2008 explicitly present (US-only crisis)")
+        if not gfc_ok:
+            fails.append("gfc_2008 missing")
         for crisis_name, label, _ in US_EPISODES:
             cur.execute("""select k.label, count(c.*)
                            from curveiq.crisis_keydates k

@@ -1,5 +1,25 @@
 country: null
 
+## US Global Financial Crisis, 2008
+The 2008 crisis (NBER recession Dec 2007 – Jun 2009) is the cleanest bull-steepening
+episode in the set, and it is US-only — Indian G-Sec data in this app starts around
+2011-12, so India cannot render it. Three key dates tell the story: pre-stress in
+mid-2007 the curve was flat-to-inverted; after Lehman failed in September 2008 the
+Federal Reserve cut the policy rate toward zero, collapsing the front end; by mid-2009
+the curve was steep, with short rates pinned near zero and long rates well above them.
+That reshape — front end falling faster than the long end, steepening the curve — is a
+bull steepening. The episode is shaded from the NBER recession dates, not invented.
+
+## Bull steepening vs bear flattening
+The curve reshapes in characteristic ways. A bull steepening is short rates falling
+faster than long rates (the curve steepens as prices rally) — typically when the
+central bank cuts aggressively, as in 2008 and the 2020 COVID shock. A bear steepening
+is long rates rising faster than short rates, as in the 2013 Taper Tantrum when the
+prospect of less Fed bond-buying pushed long yields up. Bear flattening is short rates
+rising faster than long rates, usually during a hiking cycle. These are descriptive
+labels for what already happened to level and slope; CurveIQ reports the move, not a
+call on what comes next.
+
 ## US 2019 inversion
 Through 2019 the US curve inverted: the 10-year fell below the 3-month from May and
 the 10Y–2Y briefly turned negative in late August. Descriptively, the market was

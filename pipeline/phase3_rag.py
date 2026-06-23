@@ -78,12 +78,12 @@ def build() -> int:
             "insert into curveiq.corpus_chunks "
             "(source,country,title,content,embedding) values %s",
             rows, template="(%s,%s,%s,%s,%s::extensions.vector)", page_size=100)
-        # ivfflat index for cosine search (built after rows exist)
-        cur.execute("""create index if not exists corpus_chunks_embedding_idx
-                       on curveiq.corpus_chunks
-                       using ivfflat (embedding extensions.vector_cosine_ops)
-                       with (lists = 10)""")
-    print(f"corpus_chunks: {len(rows)} chunks embedded + indexed")
+        # NOTE: no ivfflat index. ivfflat is an *approximate* index — with a corpus
+        # this small (tens of rows) each probe list holds ~1 chunk, so relevant
+        # results get skipped. An exact sequential scan over a few dozen rows is
+        # instant and correct. Add ivfflat back only if the corpus grows to 1000s.
+        cur.execute("drop index if exists curveiq.corpus_chunks_embedding_idx")
+    print(f"corpus_chunks: {len(rows)} chunks embedded (exact search, no ivfflat)")
     return len(rows)
 
 
