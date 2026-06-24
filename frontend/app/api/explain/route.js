@@ -11,8 +11,11 @@ const SYSTEM = `You are the explainer for CurveIQ, a strictly descriptive and
 retrospective yield-curve analytics tool. Rules you must obey:
 - Narrate ONLY the numbers provided in the FACTS block and the supplied context.
 - Never compute or assert a figure that was not given to you.
-- Never give advice, recommendations, or predictions. No "buy/sell/should".
-- Never say what will happen next. Describe what the data shows, in plain language.
+- Never give advice, recommendations, or predictions.
+- Never say what will happen next. Describe only what the data has shown, in the
+  past/present tense.
+- Do NOT use these words: will, should, expect, likely, forecast, predict, buy, sell,
+  recommend. Reword any such idea as a description of what the data shows.
 - 3-5 sentences, calm and precise. No bullet points.`;
 
 async function embed(text) {
@@ -45,17 +48,29 @@ async function retrieve(embedding, country) {
   return r.json();
 }
 
-async function narrate(topic, country, facts, chunks) {
+async function narrate(topic, country, facts, chunks, avoid = []) {
   const context = chunks
     .map((c) => `### ${c.title}\n${c.content}`)
     .join("\n\n");
-  const user = `TOPIC: ${topic} (${country})
+  let user = `TOPIC: ${topic} (${country})
 
 FACTS (the only numbers you may state):
 ${JSON.stringify(facts, null, 2)}
 
 CONTEXT (curated notes — use for explanation, not for new numbers):
 ${context}`;
+
+  // On a retry, tell the model exactly which phrases were rejected and how to fix.
+  if (avoid.length) {
+    user += `
+
+REWRITE NOTICE: a previous draft was rejected because it contained prescriptive or
+forward-looking language: ${avoid.map((p) => `"${p}"`).join(", ")}. Rewrite the
+explanation so NONE of those phrases (or equivalents) appear. Stay strictly
+descriptive and retrospective: describe only what the data has shown, in the
+past/present tense. Do not predict, recommend, or advise, and avoid words like
+"will", "should", "expect", "likely", "forecast", "buy", or "sell".`;
+  }
 
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -90,19 +105,32 @@ export async function POST(req) {
     const query = `${topic} ${Object.keys(facts || {}).join(" ")}`;
     const embedding = await embed(query);
     const chunks = await retrieve(embedding, country);
-    const explanation = await narrate(topic, country, facts || {}, chunks);
 
-    // Guardrail: block prescriptive / forward-looking phrasing.
-    const violations = lintForbidden(explanation);
-    if (violations.length) {
-      return Response.json({
-        explanation:
-          "This panel is descriptive only. (The generated narration was blocked " +
-          "for using prescriptive or forward-looking language.)",
-        blocked: violations,
-      });
+    // Guardrail with self-correction: if the draft trips the forbidden-language
+    // lint, regenerate (up to 3 tries) telling the model exactly which phrases to
+    // reword — only fall back to the blocked message if it still won't comply.
+    let explanation = "";
+    let violations = [];
+    let avoid = [];
+    for (let attempt = 0; attempt < 3; attempt++) {
+      explanation = await narrate(topic, country, facts || {}, chunks, avoid);
+      violations = lintForbidden(explanation);
+      if (!violations.length) {
+        return Response.json({
+          explanation,
+          sources: chunks.map((c) => c.title),
+          retries: attempt,
+        });
+      }
+      avoid = [...new Set([...avoid, ...violations])]; // accumulate flagged phrases
     }
-    return Response.json({ explanation, sources: chunks.map((c) => c.title) });
+
+    return Response.json({
+      explanation:
+        "This panel is descriptive only. (The narration kept using prescriptive or " +
+        "forward-looking language even after rewrites, so it was withheld.)",
+      blocked: violations,
+    });
   } catch (e) {
     return Response.json({ error: String(e.message || e) }, { status: 500 });
   }
