@@ -54,8 +54,8 @@ export default async function USPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel
-          title="Yield curve"
-          subtitle="Constant-maturity yields — drag the scrubber across history"
+          title="Yield curve (yield by maturity)"
+          subtitle="One day's yields plotted against bond term — drag the slider to change the date"
           explain={{
             country: "US",
             topic: "the shape of the latest US Treasury yield curve",
@@ -74,8 +74,8 @@ export default async function USPage() {
         </Panel>
 
         <Panel
-          title="Slope / spreads"
-          subtitle="10Y–2Y and 10Y–3M, NBER recessions shaded"
+          title="Curve slope (10Y minus 2Y spread)"
+          subtitle="Long yield minus short yield, over time. Below 0 = inverted."
           explain={{
             country: "US",
             topic: "what the US yield-curve slope and its spreads are showing",
@@ -86,9 +86,11 @@ export default async function USPage() {
             },
           }}
         >
-          <TimeSeries data={xy(spread2y)} yLabel="pp" zeroLine regimes={reg} />
+          <TimeSeries data={xy(spread2y)} yLabel="Spread (pp)"
+            seriesName="10Y minus 2Y spread" unit=" pp" zeroLine regimes={reg} />
           <p className="mt-2 text-xs text-muted">
-            10Y–2Y (blue). Zero line dashed; shaded bands are NBER recessions.
+            Percentage points (10Y yield − 2Y yield). Dashed line is zero (flat curve);
+            red bands are official NBER recessions.
           </p>
         </Panel>
 
@@ -108,15 +110,17 @@ export default async function USPage() {
             },
           }}
         >
-          <TimeSeries2 data={realVsNominal} aLabel="nominal 10Y" bLabel="real 10Y" />
+          <TimeSeries2 data={realVsNominal} aLabel="Nominal 10Y yield"
+            bLabel="Real 10Y yield (TIPS)" yLabel="Yield (%)" unit="%" />
           <p className="mt-2 text-xs text-muted">
-            Nominal (blue) vs real (green); the gap is breakeven inflation.
+            Both in %. The vertical gap between the two lines is the market&apos;s
+            expected inflation (breakeven).
           </p>
         </Panel>
 
         <Panel
-          title="Curve factors (PCA)"
-          subtitle="Litterman–Scheinkman decomposition of daily curve changes"
+          title="What drives curve moves (PCA)"
+          subtitle="Share of daily curve movement explained by each factor"
           explain={{
             country: "US",
             topic: "the principal components of the US curve (level, slope, curvature)",
@@ -139,8 +143,8 @@ export default async function USPage() {
         </Panel>
 
         <Panel
-          title="Equity–yield correlation"
-          subtitle="Rolling 24m corr of monthly Δ10Y vs S&P 500 returns"
+          title="Stocks vs yields (correlation)"
+          subtitle="24-month rolling correlation: monthly 10Y change vs S&P 500 return"
           explain={{
             country: "US",
             topic: "the equity–yield correlation and how it splits across recessions",
@@ -151,14 +155,15 @@ export default async function USPage() {
             },
           }}
         >
-          <TimeSeries data={xy(corr24)} yLabel="ρ" zeroLine color="#3fb27f" />
+          <TimeSeries data={xy(corr24)} yLabel="Correlation (−1 to +1)"
+            seriesName="24-month rolling correlation" zeroLine color="#3fb27f" />
           <div className="mt-3 flex gap-3 text-sm">
-            <RegimeStat label="in recession" v={corrIn?.value} />
-            <RegimeStat label="outside" v={corrOut?.value} />
+            <RegimeStat label="during recessions" v={corrIn?.value} />
+            <RegimeStat label="outside recessions" v={corrOut?.value} />
           </div>
           <p className="mt-2 text-xs text-muted">
-            The single-sample mean hides the structure — the regime split is shown
-            instead, never a lone number.
+            Correlation runs −1 to +1 (0 = no relationship). The split is shown by
+            regime because a single average over all history hides the structure.
           </p>
         </Panel>
       </div>
@@ -166,10 +171,11 @@ export default async function USPage() {
       <section className="space-y-2 pt-2">
         <h2 className="font-medium">Crisis curve behaviour</h2>
         <p className="max-w-3xl text-sm text-muted">
-          How the whole curve reshaped through each stress episode — overlaid
-          snapshots at pre-stress, peak, and recovery key dates. Watch the slope
-          and level shift (bull-steepening as the Fed cut in 2008 and 2020; the
-          2013 bear sell-off).
+          Each chart overlays the yield curve (yield vs maturity) on three dates of an
+          episode — before the stress, at its peak, and during recovery — so you can
+          see the whole curve reshape. Watch the short end collapse and the curve
+          steepen as the Fed cut in 2008 and 2020; the 2013 sell-off pushed long
+          yields up instead.
         </p>
         <div className="grid gap-6 lg:grid-cols-3">
           {crises.map((c) => (

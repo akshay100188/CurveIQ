@@ -32,35 +32,38 @@ export default async function IndiaPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel
-          title="10Y G-Sec yield"
-          subtitle="Monthly benchmark (OECD via FRED), crisis windows shaded"
+          title="10Y G-Sec yield over time"
+          subtitle="India's 10-year benchmark yield, monthly. Red bands = crisis windows."
           explain={{
             country: "IN",
             topic: "the level and history of India's 10-year government bond yield",
             facts: { latest_10y: tenY.at(-1)?.value, as_of: tenY.at(-1)?.obs_date },
           }}
         >
-          <TimeSeries data={xy(tenY)} yLabel="%" regimes={reg} color="#3fb27f" />
+          <TimeSeries data={xy(tenY)} yLabel="Yield (%)"
+            seriesName="India 10Y G-Sec yield" unit="%" regimes={reg} color="#3fb27f" />
         </Panel>
 
         <Panel
-          title="Slope: 10Y – short rate"
-          subtitle="10Y G-Sec minus OECD call-money composite"
+          title="Curve slope (10Y minus short rate)"
+          subtitle="Long yield minus the short rate, over time. Below 0 = inverted."
           explain={{
             country: "IN",
             topic: "what India's 10Y-minus-short-rate slope shows and why inversions mean less here",
             facts: { latest_spread: spread.at(-1)?.value, as_of: spread.at(-1)?.obs_date },
           }}
         >
-          <TimeSeries data={xy(spread)} yLabel="pp" zeroLine regimes={reg} />
+          <TimeSeries data={xy(spread)} yLabel="Spread (pp)"
+            seriesName="10Y minus short-rate spread" unit=" pp" zeroLine regimes={reg} />
           <p className="mt-2 text-xs text-muted">
-            India inversions are rare and carry little recession content — see Explain.
+            Percentage points (10Y G-Sec − short rate). India inversions are rare and
+            carry little recession content — see Explain.
           </p>
         </Panel>
 
         <Panel
           title="Policy rate (administered)"
-          subtitle="RBI repo rate — a set rate, not a market movement"
+          subtitle="RBI repo rate — set by the central bank, not a traded market price"
           explain={{
             country: "IN",
             topic: "why the RBI repo rate is shown separately as an administered rate",
@@ -68,12 +71,13 @@ export default async function IndiaPage() {
           }}
         >
           <span className="badge mb-3 bg-warn/15 text-warn">administered</span>
-          <TimeSeries data={xy(repo)} yLabel="%" color="#e0b341" />
+          <TimeSeries data={xy(repo)} yLabel="Rate (%)"
+            seriesName="RBI repo rate" unit="%" color="#e0b341" />
         </Panel>
 
         <Panel
-          title="Equity–yield correlation"
-          subtitle="Rolling 24m corr of monthly Δ10Y vs Nifty 50 returns"
+          title="Stocks vs yields (correlation)"
+          subtitle="24-month rolling correlation: monthly 10Y change vs Nifty 50 return"
           explain={{
             country: "IN",
             topic: "the equity–yield correlation in India split across crisis windows",
@@ -84,17 +88,21 @@ export default async function IndiaPage() {
             },
           }}
         >
-          <TimeSeries data={xy(corr24)} yLabel="ρ" zeroLine color="#3fb27f" />
+          <TimeSeries data={xy(corr24)} yLabel="Correlation (−1 to +1)"
+            seriesName="24-month rolling correlation" zeroLine color="#3fb27f" />
           <div className="mt-3 flex gap-3 text-sm">
             <div className="rounded-lg border border-edge bg-ink/40 px-3 py-2">
-              <span className="text-muted">in crisis: </span>
+              <span className="text-muted">during crises: </span>
               <span className="metric">{corrIn?.value != null ? (+corrIn.value).toFixed(2) : "—"}</span>
             </div>
             <div className="rounded-lg border border-edge bg-ink/40 px-3 py-2">
-              <span className="text-muted">outside: </span>
+              <span className="text-muted">outside crises: </span>
               <span className="metric">{corrOut?.value != null ? (+corrOut.value).toFixed(2) : "—"}</span>
             </div>
           </div>
+          <p className="mt-2 text-xs text-muted">
+            Correlation runs −1 to +1 (0 = no relationship), split by regime.
+          </p>
         </Panel>
 
         <MissingPanel
@@ -131,7 +139,7 @@ export default async function IndiaPage() {
               <Panel
                 key={w.regime_name}
                 title={w.regime_name === "taper_tantrum" ? "Taper Tantrum (2013)" : "COVID shock (2020)"}
-                subtitle={`10Y G-Sec, ${w.start_date} → ${w.end_date || "ongoing"}`}
+                subtitle={`India 10Y G-Sec yield, ${w.start_date} → ${w.end_date || "ongoing"}`}
                 explain={{
                   country: "IN",
                   topic: `India's 10Y trajectory through the ${w.regime_name} window and why only a level view is possible`,
@@ -141,7 +149,8 @@ export default async function IndiaPage() {
                   },
                 }}
               >
-                <TimeSeries data={slice} yLabel="%" color="#3fb27f" />
+                <TimeSeries data={slice} yLabel="Yield (%)"
+                  seriesName="India 10Y G-Sec yield" unit="%" color="#3fb27f" />
                 <p className="mt-2 text-xs text-muted">
                   No curve-shift view is possible — India has no free full curve.
                 </p>
