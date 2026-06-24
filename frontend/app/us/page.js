@@ -1,5 +1,5 @@
 import Panel from "@/components/Panel";
-import { CrisisCurves, CurveScrubber, TimeSeries, TimeSeries2 } from "@/components/charts";
+import { CrisisCurves, CurveScrubber, RatesTimeline, TimeSeries, TimeSeries2 } from "@/components/charts";
 import {
   crisisCurvesUS,
   curveHistoryUS,
@@ -8,6 +8,8 @@ import {
   metricMonthly,
   ratesMonthly,
   regimes,
+  usCrisisBands,
+  usRatesTimeline,
 } from "@/lib/db";
 
 export const revalidate = 3600;
@@ -33,6 +35,8 @@ export default async function USPage() {
       crisisCurvesUS(),
     ]);
   const history = await curveHistoryUS();
+  const [timeline, bands] = await Promise.all([usRatesTimeline(), usCrisisBands()]);
+  const last = timeline.at(-1);
 
   // overlay nominal 10Y vs 10Y real yield on a common monthly date set
   const realMap = new Map(real.map((r) => [r.obs_date, +r.value]));
@@ -167,6 +171,35 @@ export default async function USPage() {
           </p>
         </Panel>
       </div>
+
+      <Panel
+        title="Rates & spread crisis timeline (10Y, 2Y, 10Y−2Y)"
+        subtitle="The 2s10s signal over time, with all four US crisis episodes shaded"
+        explain={{
+          country: "US",
+          topic: "the US 10Y/2Y rates and 10Y−2Y spread across the four crisis bands, including the 2026 war",
+          facts: {
+            latest_date: last?.x,
+            latest_10y: last?.y10,
+            latest_2y: last?.y2,
+            latest_spread: last?.spread,
+            war_2026: {
+              note: "open-ended band from 2026-02-28; yields rose (a bear move, unlike the flight-to-safety episodes where yields fall)",
+              spread_jan_2026: timeline.find((d) => d.x >= "2026-01-01")?.spread,
+              spread_latest: last?.spread,
+            },
+          },
+        }}
+      >
+        <RatesTimeline data={timeline} bands={bands} />
+        <p className="mt-2 text-xs text-muted">
+          Three lines on one axis: 10Y (blue), 2Y (purple), and the 10Y−2Y spread
+          (green). The dashed line is zero — the spread below it means the curve is
+          inverted. Red bands are the four US crisis episodes. 2008 and 2020 are
+          flight-to-safety (yields fall); the open-ended 2026 US–West Asia war is the
+          counter-case where yields <em>rose</em> on an oil/inflation shock.
+        </p>
+      </Panel>
 
       <section className="space-y-2 pt-2">
         <h2 className="font-medium">Crisis curve behaviour</h2>

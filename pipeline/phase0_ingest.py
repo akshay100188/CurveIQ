@@ -17,7 +17,7 @@ from psycopg2.extras import execute_values
 
 from . import db
 from .config import (BOND_IMPORTS, EQUITY_IMPORTS, FRED_SERIES,
-                     INDIA_CRISIS_WINDOWS, USREC_FRED_ID)
+                     INDIA_CRISIS_WINDOWS, US_CRISIS_WINDOWS, USREC_FRED_ID)
 from .sources import fred
 
 TENOR_LABEL = {1: "1M", 3: "3M", 6: "6M", 12: "1Y", 24: "2Y", 36: "3Y",
@@ -129,13 +129,18 @@ def build_regimes(cur) -> None:
     for name, s, e, src in INDIA_CRISIS_WINDOWS:
         windows.append(("IN", name, s, e, src))
 
+    # --- US: named crisis bands for the rates timeline (incl. open-ended war) ---
+    for name, s, e, src in US_CRISIS_WINDOWS:
+        windows.append(("US", name, s, e, src))
+
     execute_values(cur,
         "insert into curveiq.regimes (country,regime_name,start_date,end_date,source) "
         "values %s on conflict (country,regime_name,start_date) do update set "
         "end_date=excluded.end_date, source=excluded.source",
         windows, page_size=500)
-    us = sum(1 for w in windows if w[0] == "US")
-    print(f"  regimes: {us} US NBER recessions + {len(INDIA_CRISIS_WINDOWS)} India crisis windows")
+    n_nber = sum(1 for w in windows if w[0] == "US" and w[1] == "nber_recession")
+    print(f"  regimes: {n_nber} US NBER recessions + {len(US_CRISIS_WINDOWS)} US crisis bands "
+          f"+ {len(INDIA_CRISIS_WINDOWS)} India crisis windows")
 
 
 # ---------------------------------------------------------------------------

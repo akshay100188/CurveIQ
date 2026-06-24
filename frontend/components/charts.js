@@ -120,6 +120,60 @@ export function TimeSeries2({
   );
 }
 
+// US rates & spread crisis timeline: 10Y, 2Y, and 10Y-2Y spread over time, with the
+// four named US crisis bands shaded and a zero line marking spread inversion.
+const BAND_LABEL = {
+  gfc_2008: "GFC 2008", taper_tantrum: "Taper 2013",
+  covid: "COVID 2020", westasia_war_2026: "War 2026",
+};
+
+function crisisBandShapes(bands, minX, maxX) {
+  if (!bands) return null;
+  return bands
+    .map((b, i) => {
+      let x1 = ms(b.start_date);
+      let x2 = b.end_date ? ms(b.end_date) : maxX; // open-ended war → latest data
+      if (x2 < minX || x1 > maxX) return null;
+      x1 = Math.max(x1, minX);
+      x2 = Math.min(x2, maxX);
+      return (
+        <ReferenceArea key={`cb-${i}`} x1={x1} x2={x2} yAxisId={0}
+          fill="#e5616a" fillOpacity={0.16} stroke="#e5616a" strokeOpacity={0.3}
+          ifOverflow="hidden"
+          label={{ value: BAND_LABEL[b.regime_name] || b.regime_name,
+            position: "insideTop", fill: "#e88f95", fontSize: 9, offset: 6 }} />
+      );
+    })
+    .filter(Boolean);
+}
+
+export function RatesTimeline({ data, bands }) {
+  if (!data?.length) return <div className="text-sm text-muted">No data.</div>;
+  const series = data.map((d) => ({ t: ms(d.x), y10: d.y10, y2: d.y2, spread: d.spread }));
+  const minX = series[0].t, maxX = series[series.length - 1].t;
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={series} margin={{ top: 16, right: 12, bottom: 24, left: 4 }}>
+        <CartesianGrid stroke={GRID} strokeDasharray="3 3" />
+        {crisisBandShapes(bands, minX, maxX)}
+        <XAxis dataKey="t" type="number" scale="time" domain={["dataMin", "dataMax"]}
+          tick={AXIS} minTickGap={48} tickFormatter={yr} label={xTitle("Year")} />
+        <YAxis tick={AXIS} width={56} label={yTitle("Yield / spread (%)")} />
+        <Tooltip contentStyle={ttStyle()} labelStyle={{ color: MUTED }}
+          labelFormatter={(t) => new Date(t).toISOString().slice(0, 10)}
+          formatter={(v, n) => [fmt(v, "%"), n]} />
+        <Legend wrapperStyle={{ fontSize: 11, color: MUTED }} />
+        <ReferenceLine y={0} yAxisId={0} stroke="#e0b341" strokeDasharray="4 4"
+          label={{ value: "0 = inversion", position: "insideBottomRight",
+            fill: "#e0b341", fontSize: 10 }} />
+        <Line type="monotone" dataKey="y10" name="10Y yield" stroke="#5b9dff" dot={false} strokeWidth={1.5} />
+        <Line type="monotone" dataKey="y2" name="2Y yield" stroke="#b78bff" dot={false} strokeWidth={1.5} />
+        <Line type="monotone" dataKey="spread" name="10Y − 2Y spread" stroke="#3fb27f" dot={false} strokeWidth={1.8} />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
 // Overlay several curves (yield vs maturity) for crisis reshape — one line per key date.
 const CRISIS_COLORS = { pre_stress: "#8597b5", peak: "#e5616a", recovery: "#3fb27f" };
 const CRISIS_LABELS = { pre_stress: "pre-stress", peak: "peak", recovery: "recovery" };

@@ -20,6 +20,21 @@ rising faster than long rates, usually during a hiking cycle. These are descript
 labels for what already happened to level and slope; CurveIQ reports the move, not a
 call on what comes next.
 
+## US–West Asia war, 2026 (the yields-up counter-case)
+The 2026 US–West Asia war (shaded from 2026-02-28, open-ended) is the counter-case to
+the other US crisis episodes. In the GFC (2008) and COVID (2020), investors fled to
+the safety of Treasuries and yields *fell*. In 2026 the opposite happened: yields
+*rose*. The war was an oil and inflation shock — higher energy prices lifted inflation
+expectations, the term premium, and government borrowing to finance the conflict, all
+of which push yields up, and the Fed was on hold rather than cutting. So this is a
+*bear* move (yields up), not a flight-to-safety move. Note the curve did not steepen on
+this: through the first half of 2026 the 2-year yield rose faster than the 10-year, so
+the 10Y−2Y spread narrowed rather than widened — a bear flattening. The lesson is that
+"crisis" does not always mean "yields down": the direction depends on whether the shock
+is disinflationary (growth scare) or inflationary (supply/oil/fiscal). This episode is
+shown on the rates & spread timeline rather than the curve-snapshot panel because it is
+ongoing and its story is the continuous path of yields, not a finished reshape.
+
 ## US 2019 inversion
 Through 2019 the US curve inverted: the 10-year fell below the 3-month from May and
 the 10Y–2Y briefly turned negative in late August. Descriptively, the market was

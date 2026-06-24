@@ -103,6 +103,30 @@ export async function curveHistoryUS() {
   return [...byDate.entries()].map(([date, points]) => ({ date, points }));
 }
 
+// US rates & spread timeline: 10Y, 2Y, 10Y-2Y spread (monthly, 2006+) merged by date.
+export async function usRatesTimeline(fromDate = "2006-01-01") {
+  const rows = await rest(
+    `v_rates_monthly?series_id=in.(US_DGS10,US_DGS2,US_T10Y2Y)` +
+      `&obs_date=gte.${fromDate}&select=series_id,obs_date,value&order=obs_date.asc`
+  );
+  const byDate = new Map();
+  const key = { US_DGS10: "y10", US_DGS2: "y2", US_T10Y2Y: "spread" };
+  for (const r of rows) {
+    if (!byDate.has(r.obs_date)) byDate.set(r.obs_date, { x: r.obs_date });
+    byDate.get(r.obs_date)[key[r.series_id]] = +r.value;
+  }
+  // keep only dates that have all three (spread starts 1976, fine post-2006)
+  return [...byDate.values()].filter((d) => d.y10 != null && d.y2 != null && d.spread != null);
+}
+
+// The four named US crisis bands (gfc_2008, taper_tantrum, covid, westasia_war_2026).
+export async function usCrisisBands() {
+  return rest(
+    `regimes?country=eq.US&regime_name=in.(gfc_2008,taper_tantrum,covid,westasia_war_2026)` +
+      `&select=regime_name,start_date,end_date&order=start_date.asc`
+  );
+}
+
 export async function regimes(country) {
   return rest(
     `regimes?country=eq.${country}&select=regime_name,start_date,end_date&order=start_date.asc`

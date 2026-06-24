@@ -163,3 +163,19 @@ INDIA_CRISIS_WINDOWS = [
     ("taper_tantrum", "2013-05-01", "2013-09-30", "manual"),
     ("covid",         "2020-02-01", "2020-04-30", "manual"),
 ]
+
+# ---------------------------------------------------------------------------
+# US named crisis bands for the rates & spread timeline (spec §4/§8). These are
+# the four shaded episodes on the 10Y/2Y/spread chart — distinct from the 24
+# generic NBER `nber_recession` windows. 2008 & COVID align with NBER recessions;
+# Taper Tantrum is a rates episode (no recession); the 2026 US–West Asia war is
+# manual and OPEN-ENDED (end_date NULL → ongoing). The war is the yields-UP
+# counter-case to the flight-to-safety (yields-down) episodes.
+# (regime_name, start_date, end_date|None, source)
+# ---------------------------------------------------------------------------
+US_CRISIS_WINDOWS = [
+    ("gfc_2008",          "2007-12-01", "2009-06-30", "NBER"),
+    ("taper_tantrum",     "2013-05-01", "2013-09-30", "manual"),
+    ("covid",             "2020-02-01", "2020-04-30", "NBER"),
+    ("westasia_war_2026", "2026-02-28", None,         "manual"),
+]

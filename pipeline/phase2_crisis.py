@@ -140,6 +140,40 @@ def validate() -> int:
             print(f"  [{'PASS' if ok else 'FAIL'}] IN {win}: 10Y rows={n10}, spread rows={nsp}")
             if not ok:
                 fails.append(f"IN {win}")
+
+        # --- US rates & spread timeline gate (spec §6) ---
+        # All four named bands present; 10Y/2Y/spread non-empty since 2006; and the
+        # open-ended 2026 war band actually has data (catches stale 2026 data).
+        cur.execute("""select regime_name, end_date from curveiq.regimes
+                       where country='US' and regime_name in
+                       ('gfc_2008','taper_tantrum','covid','westasia_war_2026')""")
+        band = dict(cur.fetchall())
+        for b in ("gfc_2008", "taper_tantrum", "covid", "westasia_war_2026"):
+            present = b in band
+            print(f"  [{'PASS' if present else 'FAIL'}] US timeline band {b} present")
+            if not present:
+                fails.append(f"timeline band {b}")
+        war_open = "westasia_war_2026" in band and band["westasia_war_2026"] is None
+        print(f"  [{'PASS' if war_open else 'FAIL'}] 2026 war band is open-ended (end_date NULL)")
+        if not war_open:
+            fails.append("war band not open-ended")
+        for sid in ("US_DGS10", "US_DGS2", "US_T10Y2Y"):
+            cur.execute("""select count(*), max(obs_date) from curveiq.rates_timeseries
+                           where series_id=%s and obs_date >= '2006-01-01'""", (sid,))
+            n, mx = cur.fetchone()
+            ok = n > 0
+            print(f"  [{'PASS' if ok else 'FAIL'}] timeline series {sid}: {n} rows since 2006 (latest {mx})")
+            if not ok:
+                fails.append(f"timeline {sid}")
+        # war band must extend into available data, not sit beyond the latest date
+        cur.execute("select max(obs_date) from curveiq.rates_timeseries where series_id='US_DGS10'")
+        latest = cur.fetchone()[0]
+        war_has_data = latest is not None and str(latest) >= "2026-02-28"
+        print(f"  [{'PASS' if war_has_data else 'FAIL'}] 2026 war band covered by data "
+              f"(latest DGS10 {latest} >= war start 2026-02-28)")
+        if not war_has_data:
+            fails.append("war band has no data (stale 2026 data)")
+
     print(f"\nCRISIS VALIDATION: {len(fails)} failures")
     return 1 if fails else 0
 

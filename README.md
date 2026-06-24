@@ -51,8 +51,9 @@ pip install -r requirements.txt
 python -m pipeline.run_phase0           # schema + ingest + Phase 0 validation gates
 python -m pipeline.phase1_compute       # L1 metrics
 python -m pipeline.phase1_validate      # Phase 1 validation gates
-python -m pipeline.phase2_crisis        # seed crisis key dates + validation gates
+python -m pipeline.phase2_crisis        # seed crisis key dates + bands + validation gates
 python -m pipeline.phase3_rag           # build + embed the RAG corpus
+python -m pipeline.refresh_daily        # full daily refresh (equity+rates+compute+gates)
 python -m pipeline.bond_reference       # regenerate bond golden vectors
 python -m tests.test_compute            # L1 unit tests
 python -m tests.test_bond_reference     # bond engine unit tests (Python twin)
@@ -88,8 +89,22 @@ Deploy target: Vercel. Set the four server-side env vars in the Vercel project.
   Macaulay/modified duration, convexity, DV01; US Treasury (ACT/ACT) + India G-Sec
   (30/360) presets.
 - `/us` — curve scrubber, slope/spreads, real-vs-nominal, PCA factors, equity–yield
-  regime split, crisis curve overlays (2008/2013/2020).
+  regime split, crisis curve overlays (2008/2013/2020), and a **rates & spread
+  timeline** (10Y/2Y/10Y−2Y with all four crisis bands incl. the open-ended
+  2026 US–West Asia war — the yields-up counter-case).
 - `/in` — 10Y, slope, administered repo, Nifty correlation, crisis trajectories, and
   three annotated "missing" panels.
+
+## Staying current — daily refresh
+A scheduled GitHub Actions workflow ([`.github/workflows/daily-refresh.yml`](.github/workflows/daily-refresh.yml))
+runs [`pipeline/refresh_daily.py`](pipeline/refresh_daily.py) every day at 23:30 UTC:
+refresh equity (S&P 500 via FRED, Nifty 50 via NSE) → re-ingest fresh FRED rates +
+India series → recompute L1 metrics → re-seed crisis bands → run **every validation
+gate** (non-zero exit fails the run). The Vercel frontend reads Supabase with hourly
+ISR, so it picks up new data within ~1h — **no redeploy needed**.
+
+**Setup:** add two repository secrets in GitHub (Settings → Secrets and variables →
+Actions): `DATABASE_URL` and `FRED_API_KEY`. Trigger a manual run any time from the
+Actions tab (`workflow_dispatch`).
 
 See [`Decisions.md`](Decisions.md) for the architecture decision records.

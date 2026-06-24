@@ -64,6 +64,21 @@ numerical derivative. YTM-from-price uses **Newton–Raphson** (seeded at the co
 analytic derivative = −modified-duration × dirty price) with a **bisection fallback**
 over [1e-6, 2.0] when NR steps out of range.
 
+## ADR-11: Four US crises, a rates timeline, and the 2026 war counter-case
+The full US crisis set is **four**: GFC 2008, Taper Tantrum 2013, COVID 2020, and the
+**2026 US–West Asia war** (open-ended, 2026-02-28 → ongoing). The first three are
+completed episodes shown on the curve-snapshot panel; the war is **ongoing** with no
+recovery snapshot, so it lives on a separate **rates & spread timeline** (10Y, 2Y,
+10Y−2Y on one axis, four shaded bands, zero line for inversion). Two kinds of US-only:
+2008 is structural (no Indian data pre-2011); the war is scope-only (India has 2026
+data — a candidate future addition). **Data-honesty note:** the spec framed the war as
+*bear steepening*, but the actual FRED data through mid-2026 shows the 2Y rising faster
+than the 10Y, so the 10Y−2Y spread *narrowed* — a **bear flattening**. We report the
+data, not the spec's hypothesis: the corpus and panel describe yields rising (a bear
+move, the counter-case to the flight-to-safety episodes) and explicitly note the curve
+flattened. The yields-up driver is the oil/inflation/term-premium/war-financing channel
+with the Fed on hold.
+
 ## ADR-9: Crisis curve behaviour via key-date snapshots
 Rather than animate, the US crisis view **overlays three discrete curve snapshots**
 (pre-stress / peak / recovery) per episode. Key dates live in

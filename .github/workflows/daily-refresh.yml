@@ -1,0 +1,38 @@
+name: Daily data refresh
+
+# Keeps the Supabase DB current so the app is always up to date.
+# Runs the Python pipeline: refresh equity -> re-ingest FRED rates/India ->
+# recompute L1 metrics -> re-seed crisis bands -> run all validation gates.
+# The Vercel frontend reads from Supabase with hourly ISR, so it picks up the
+# new data within ~1h of this job — no redeploy needed.
+
+on:
+  schedule:
+    # 23:30 UTC daily — after the US market close and FRED's daily update.
+    - cron: "30 23 * * *"
+  workflow_dispatch: {}   # allow manual runs from the Actions tab
+
+concurrency:
+  group: daily-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run daily refresh + validation gates
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: python -m pipeline.refresh_daily
