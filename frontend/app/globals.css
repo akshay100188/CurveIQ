@@ -2,16 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: dark; }
+/* Light theme is the default (:root); dark applies when <html> has class "dark".
+   Colors are "R G B" triplets so Tailwind's /opacity modifiers keep working. */
+:root {
+  --c-bg: 247 249 252;
+  --c-panel: 255 255 255;
+  --c-edge: 226 232 240;
+  --c-muted: 100 116 139;
+  --c-fg: 15 23 42;
+  --c-accent: 37 99 235;
+  --c-good: 22 163 74;
+  --c-warn: 180 83 9;
+  --c-bad: 220 38 38;
+  color-scheme: light;
+}
+
+html.dark {
+  --c-bg: 11 18 32;
+  --c-panel: 17 26 46;
+  --c-edge: 30 42 68;
+  --c-muted: 133 151 181;
+  --c-fg: 230 237 247;
+  --c-accent: 91 157 255;
+  --c-good: 63 178 127;
+  --c-warn: 224 179 65;
+  --c-bad: 229 97 106;
+  color-scheme: dark;
+}
 
 body {
-  background: radial-gradient(1200px 600px at 50% -10%, #16223c 0%, #0b1220 60%);
-  color: #e6edf7;
+  background: rgb(var(--c-bg));
+  color: rgb(var(--c-fg));
   min-height: 100vh;
+}
+html.dark body {
+  background: radial-gradient(1200px 600px at 50% -10%, #16223c 0%, #0b1220 60%);
 }
 
 .card {
-  @apply rounded-xl border border-edge bg-panel/70 p-5 shadow-lg backdrop-blur;
+  @apply rounded-xl border border-edge bg-panel/80 p-5 shadow-lg backdrop-blur;
 }
 .h-eyebrow { @apply text-xs uppercase tracking-widest text-muted; }
 .metric { @apply font-mono tabular-nums; }

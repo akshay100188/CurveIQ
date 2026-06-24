@@ -40,7 +40,7 @@ export default function ExplainOutput({ country, topic, facts }) {
       {loading && <span className="text-muted">Reading the numbers…</span>}
       {error && <span className="text-bad">Error: {error}</span>}
       {text && (
-        <p className="whitespace-pre-wrap break-words text-[13px] text-slate-200">
+        <p className="whitespace-pre-wrap break-words text-[13px] text-fg/90">
           {text}
         </p>
       )}

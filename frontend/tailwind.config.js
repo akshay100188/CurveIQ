@@ -1,20 +1,24 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: "class",
   content: [
     "./app/**/*.{js,jsx}",
-    "./components/**/*.{js,jsx}",
+    "./components/**/*.{js,jsx,tsx}",
   ],
   theme: {
     extend: {
       colors: {
-        ink: "#0b1220",
-        panel: "#111a2e",
-        edge: "#1e2a44",
-        muted: "#8597b5",
-        accent: "#5b9dff",
-        good: "#3fb27f",
-        warn: "#e0b341",
-        bad: "#e5616a",
+        // CSS-variable-backed so the whole palette swaps with the theme.
+        // Vars hold "R G B" triplets so Tailwind opacity modifiers (bg-panel/70) work.
+        ink: "rgb(var(--c-bg) / <alpha-value>)",
+        panel: "rgb(var(--c-panel) / <alpha-value>)",
+        edge: "rgb(var(--c-edge) / <alpha-value>)",
+        muted: "rgb(var(--c-muted) / <alpha-value>)",
+        fg: "rgb(var(--c-fg) / <alpha-value>)",
+        accent: "rgb(var(--c-accent) / <alpha-value>)",
+        good: "rgb(var(--c-good) / <alpha-value>)",
+        warn: "rgb(var(--c-warn) / <alpha-value>)",
+        bad: "rgb(var(--c-bad) / <alpha-value>)",
       },
       fontFamily: {
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],

@@ -126,7 +126,7 @@ export default async function IndiaPage() {
           Instead these zoom into each crisis window to show the 10Y level
           trajectory — the honest degraded view. Only the 2013 and 2020 episodes
           appear: the 2008 GFC shown on the US page is{" "}
-          <span className="text-slate-300">absent here because Indian G-Sec data
+          <span className="text-fg">absent here because Indian G-Sec data
           in this app starts around 2011</span> — a direct instance of the
           data-availability asymmetry, not an oversight.
         </p>

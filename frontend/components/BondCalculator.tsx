@@ -96,7 +96,7 @@ export default function BondCalculator() {
       {exOpen && (
         <div className="mb-4 w-full rounded-lg border border-edge bg-ink/60 p-3 text-sm leading-relaxed">
           {exLoading && <span className="text-muted">Reading the numbers…</span>}
-          {exText && <p className="whitespace-pre-wrap break-words text-[13px] text-slate-200">{exText}</p>}
+          {exText && <p className="whitespace-pre-wrap break-words text-[13px] text-fg/90">{exText}</p>}
         </div>
       )}
 
@@ -149,11 +149,13 @@ export default function BondCalculator() {
       </div>
 
       <style>{`
-        .inp { width:100%; background:#0b1220; border:1px solid #1e2a44; border-radius:8px;
-               padding:8px 10px; font-size:13px; color:#e6edf7; }
-        .inp:focus { outline:none; border-color:#5b9dff; }
-        .tab { flex:1; border:1px solid #1e2a44; border-radius:8px; padding:8px; font-size:12px; color:#8597b5; }
-        .tab-on { border-color:#5b9dff; color:#5b9dff; background:rgba(91,157,255,.1); }
+        .inp { width:100%; background:rgb(var(--c-bg)); border:1px solid rgb(var(--c-edge));
+               border-radius:8px; padding:8px 10px; font-size:13px; color:rgb(var(--c-fg)); }
+        .inp:focus { outline:none; border-color:rgb(var(--c-accent)); }
+        .tab { flex:1; border:1px solid rgb(var(--c-edge)); border-radius:8px; padding:8px;
+               font-size:12px; color:rgb(var(--c-muted)); background:transparent; }
+        .tab-on { border-color:rgb(var(--c-accent)); color:rgb(var(--c-accent));
+                  background:rgb(var(--c-accent) / .1); }
       `}</style>
     </section>
   );
