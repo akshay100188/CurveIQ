@@ -112,7 +112,8 @@ export function TimeSeries2({
         <Tooltip contentStyle={ttStyle()} labelStyle={{ color: MUTED }}
           labelFormatter={(t) => new Date(t).toISOString().slice(0, 10)}
           formatter={(v, n) => [fmt(v, unit), n]} />
-        <Legend wrapperStyle={{ fontSize: 11, color: MUTED }} />
+        <Legend verticalAlign="top" align="center" height={26}
+          wrapperStyle={{ fontSize: 11, color: MUTED, paddingBottom: 8 }} />
         <Line type="monotone" dataKey="a" name={aLabel} stroke={aColor} dot={false} strokeWidth={1.6} />
         <Line type="monotone" dataKey="b" name={bLabel} stroke={bColor} dot={false} strokeWidth={1.6} />
       </LineChart>
@@ -162,7 +163,8 @@ export function RatesTimeline({ data, bands }) {
         <Tooltip contentStyle={ttStyle()} labelStyle={{ color: MUTED }}
           labelFormatter={(t) => new Date(t).toISOString().slice(0, 10)}
           formatter={(v, n) => [fmt(v, "%"), n]} />
-        <Legend wrapperStyle={{ fontSize: 11, color: MUTED }} />
+        <Legend verticalAlign="top" align="center" height={26}
+          wrapperStyle={{ fontSize: 11, color: MUTED, paddingBottom: 8 }} />
         <ReferenceLine y={0} yAxisId={0} stroke="#e0b341" strokeDasharray="4 4"
           label={{ value: "0 = inversion", position: "insideBottomRight",
             fill: "#e0b341", fontSize: 10 }} />
