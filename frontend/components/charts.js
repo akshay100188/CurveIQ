@@ -43,19 +43,26 @@ const yr = (t) => new Date(t).getUTCFullYear();
 const fmt = (v, unit) => (v == null ? "—" : `${(+v).toFixed(2)}${unit}`);
 
 // Regime shading bands drawn behind a time series (numeric time axis).
-function RegimeBands({ regimes, minX, maxX }) {
+// NOTE: this is a plain function, not a component — its array of <ReferenceArea>
+// elements must be inlined directly as LineChart children. Recharts only detects
+// ReferenceArea among its *direct* children; a wrapper component is ignored, so
+// the bands silently never render.
+function regimeBands(regimes, minX, maxX) {
   if (!regimes) return null;
-  return regimes.map((r, i) => {
-    let x1 = ms(r.start_date);
-    let x2 = r.end_date ? ms(r.end_date) : maxX;
-    if (x2 < minX || x1 > maxX) return null;
-    x1 = Math.max(x1, minX);
-    x2 = Math.min(x2, maxX);
-    return (
-      <ReferenceArea key={i} x1={x1} x2={x2} fill="#e5616a" fillOpacity={0.12}
-        stroke="#e5616a" strokeOpacity={0.25} ifOverflow="extendDomain" />
-    );
-  });
+  return regimes
+    .map((r, i) => {
+      let x1 = ms(r.start_date);
+      let x2 = r.end_date ? ms(r.end_date) : maxX;
+      if (x2 < minX || x1 > maxX) return null;
+      x1 = Math.max(x1, minX);
+      x2 = Math.min(x2, maxX);
+      return (
+        <ReferenceArea key={`rb-${i}`} x1={x1} x2={x2} yAxisId={0}
+          fill="#e5616a" fillOpacity={0.22} stroke="#e5616a" strokeOpacity={0.35}
+          ifOverflow="hidden" />
+      );
+    })
+    .filter(Boolean);
 }
 
 // A single time series over calendar time.
@@ -73,13 +80,13 @@ export function TimeSeries({
     <ResponsiveContainer width="100%" height={264}>
       <LineChart data={series} margin={{ top: 8, right: 12, bottom: 24, left: 4 }}>
         <CartesianGrid stroke={GRID} strokeDasharray="3 3" />
+        {regimeBands(regimes, minX, maxX)}
         <XAxis dataKey="t" type="number" scale="time" domain={["dataMin", "dataMax"]}
           tick={AXIS} minTickGap={48} tickFormatter={yr} label={xTitle("Year")} />
         <YAxis tick={AXIS} width={56} label={yTitle(yLabel)} />
         <Tooltip contentStyle={ttStyle()} labelStyle={{ color: MUTED }}
           labelFormatter={(t) => new Date(t).toISOString().slice(0, 10)}
           formatter={(v) => [fmt(v, unit), seriesName]} />
-        <RegimeBands regimes={regimes} minX={minX} maxX={maxX} />
         {zeroLine && <ReferenceLine y={0} stroke="#e0b341" strokeDasharray="4 4"
           label={{ value: "0", position: "right", fill: "#e0b341", fontSize: 10 }} />}
         <Line type="monotone" dataKey="y" name={seriesName} stroke={color} dot={false} strokeWidth={1.6} />
