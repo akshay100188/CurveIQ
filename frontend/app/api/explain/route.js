@@ -52,7 +52,10 @@ async function narrate(topic, country, facts, chunks, avoid = []) {
   const context = chunks
     .map((c) => `### ${c.title}\n${c.content}`)
     .join("\n\n");
-  let user = `TOPIC: ${topic} (${country})
+  // Stable prefix — identical across the up-to-3 retries within one request. Kept
+  // in its own block with a cache breakpoint so retries read it at ~0.1x. (No-op
+  // when system+prefix is under Haiku's 4096-token minimum; correct and free.)
+  const stable = `TOPIC: ${topic} (${country})
 
 FACTS (the only numbers you may state):
 ${JSON.stringify(facts, null, 2)}
@@ -60,16 +63,22 @@ ${JSON.stringify(facts, null, 2)}
 CONTEXT (curated notes — use for explanation, not for new numbers):
 ${context}`;
 
-  // On a retry, tell the model exactly which phrases were rejected and how to fix.
-  if (avoid.length) {
-    user += `
+  const content = [
+    { type: "text", text: stable, cache_control: { type: "ephemeral" } },
+  ];
 
-REWRITE NOTICE: a previous draft was rejected because it contained prescriptive or
+  // On a retry, tell the model exactly which phrases were rejected — appended
+  // AFTER the cache breakpoint so it never invalidates the cached prefix above.
+  if (avoid.length) {
+    content.push({
+      type: "text",
+      text: `REWRITE NOTICE: a previous draft was rejected because it contained prescriptive or
 forward-looking language: ${avoid.map((p) => `"${p}"`).join(", ")}. Rewrite the
 explanation so NONE of those phrases (or equivalents) appear. Stay strictly
 descriptive and retrospective: describe only what the data has shown, in the
 past/present tense. Do not predict, recommend, or advise, and avoid words like
-"will", "should", "expect", "likely", "forecast", "buy", or "sell".`;
+"will", "should", "expect", "likely", "forecast", "buy", or "sell".`,
+    });
   }
 
   const r = await fetch("https://api.anthropic.com/v1/messages", {
@@ -85,7 +94,7 @@ past/present tense. Do not predict, recommend, or advise, and avoid words like
       // Prompt-cache the (static) system prompt — the rules are identical on every
       // request, so caching them cuts input tokens and latency (spec §7).
       system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
-      messages: [{ role: "user", content: user }],
+      messages: [{ role: "user", content }],
     }),
   });
   if (!r.ok) throw new Error(`anthropic ${r.status} ${await r.text()}`);
